@@ -1,11 +1,11 @@
 ---
 name: mmx-cli
-description: Use mmx to generate text, images, video, and speech via the MiniMax AI platform. Use when the user wants to create media content, chat with MiniMax models, perform web search, or manage MiniMax API resources from the terminal.
+description: Use mmx to generate text, images, video, and speech, and to transcribe audio, via the MiniMax AI platform. Use when the user wants to create media content, chat with MiniMax models, transcribe audio to text, perform web search, or manage MiniMax API resources from the terminal.
 ---
 
 # MiniMax CLI — Agent Skill Guide
 
-Use `mmx` to generate text, images, video, speech, and perform web search via the MiniMax AI platform.
+Use `mmx` to generate text, images, video, speech, transcribe audio, and perform web search via the MiniMax AI platform.
 
 ## Prerequisites
 
@@ -202,6 +202,61 @@ mmx speech synthesize --text "Hello" --subtitles --out hello.mp3
 
 echo "Breaking news." | mmx speech synthesize --text-file - --out news.mp3
 ```
+
+---
+
+### speech transcribe
+
+Speech-to-text. Default model: `asr-1.0`. Accepts wav, aiff, flac, m4a, mp3, aac, opus, and
+ogg files up to 50 MB and 500 seconds.
+
+```bash
+mmx speech transcribe --file <path> [flags]
+```
+
+| Flag | Type | Description |
+|---|---|---|
+| `--file <path>` | string | Audio file to transcribe (required; also accepted as a positional argument) |
+| `--model <model>` | string | `asr-1.0` (default) |
+| `--response-format <fmt>` | string | `json` (default), `verbose_json`, `srt`, `vtt` |
+| `--language <code>` | string | BCP-47 language hint (`zh`, `en`, `ja`, ...). Omit for automatic/mixed-language detection |
+| `--timestamp-level <level>` | string | `sentence` (default) or `word`; applies to `verbose_json` / `srt` / `vtt` |
+| `--stream` | boolean | Stream incremental text to stdout. Requires `--response-format json` |
+| `--out <path>` | string | Write the result to a file instead of stdout |
+
+```bash
+mmx speech transcribe --file meeting.mp3
+# stdout: transcript text
+
+mmx speech transcribe --file call.mp3 --language zh --output json
+# stdout: {"text":"...","duration":12.3,"trace_id":"..."}
+
+mmx speech transcribe --file talk.mp3 --response-format verbose_json --timestamp-level word --output json
+# stdout: adds n_speakers and word-level segments
+
+mmx speech transcribe --file talk.mp3 --response-format srt --out talk.srt
+# saves talk.srt; stdout: {"saved":".../talk.srt"}
+
+mmx speech transcribe --file long.mp3 --stream
+# stdout: text as it is recognized (add --output text when piping)
+```
+
+Notes:
+- `mmx speech recognize` is an alias for `mmx speech transcribe`.
+- `--stream` cannot be combined with `--out`; redirect stdout instead.
+- `--stream` prints deltas only in text output mode. stdout that is not a terminal defaults to
+  `json` (as everywhere else in this CLI), which accumulates the streamed text into one JSON
+  result — pass `--output text` to pipe streamed text, e.g.
+  `mmx speech transcribe --file long.mp3 --stream --output text > transcript.txt`.
+- `srt` / `vtt` results are subtitle documents and are printed or saved verbatim.
+- Without `--out`, `--output json` prints the full API response for `json` / `verbose_json`.
+  Plain-text output prints the transcript only, so add `--output json` to read `n_speakers`
+  and `segments`.
+- A stream that ends without the API's final event raises a warning on stderr, since the
+  transcript may be truncated.
+- Input validation (missing file, unsupported format, over 50 MB, `--stream` with a non-json
+  format) fails before anything is uploaded; the API stays the authority for the 500 s duration
+  limit and codec support.
 
 ---
 

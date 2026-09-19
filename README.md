@@ -20,7 +20,7 @@
 - **Text** — Multi-turn chat, streaming, system prompts, JSON output
 - **Image** — Text-to-image with aspect ratio and batch controls
 - **Video** — Async video generation with progress tracking
-- **Speech** — TTS with 30+ voices, speed control, streaming playback
+- **Speech** — TTS with 30+ voices, speed control, streaming playback; speech-to-text transcription (json, verbose_json, srt, vtt)
 - **Vision** — Image understanding and description
 - **Search** — Web search powered by MiniMax
 - **Dual Region** — Seamless Global (`api.minimax.io`) and CN (`api.minimaxi.com`) support
@@ -54,6 +54,7 @@ mmx auth login --api-key sk-xxxxx
 mmx text chat --message "What is MiniMax?"
 mmx image "A cat in a spacesuit"
 mmx speech synthesize --text "Hello!" --out hello.mp3
+mmx speech transcribe --file meeting.mp3
 mmx video generate --prompt "Ocean waves at sunset"
 mmx search "MiniMax AI latest news"
 mmx vision photo.jpg
@@ -115,6 +116,25 @@ mmx speech synthesize --text "Hi" --voice English_magnetic_voiced_man --speed 1.
 echo "Breaking news" | mmx speech synthesize --text-file - --out news.mp3
 mmx speech voices
 ```
+
+```bash
+# Speech-to-text (asr-1.0)
+mmx speech transcribe --file meeting.mp3
+mmx speech transcribe --file call.mp3 --language zh
+mmx speech transcribe --file talk.mp3 --response-format verbose_json --output json
+mmx speech transcribe --file talk.mp3 --response-format srt --out talk.srt
+mmx speech transcribe --file long.mp3 --stream
+```
+
+`mmx speech transcribe` accepts wav, aiff, flac, m4a, mp3, aac, opus, and ogg files up to
+50 MB and 500 seconds. Audio above 50 MB is rejected locally before upload; the 500 second
+limit is enforced by the API. Omitting `--language` enables mixed-language recognition.
+`--response-format json` (default) prints the transcript, `verbose_json` adds speakers and
+per-segment timestamps, and `srt` / `vtt` return subtitle documents. `n_speakers` and
+`segments` are part of the response, so pass `--output json` to see them. `--stream` prints
+incremental text and requires `json`; when stdout is not a terminal it accumulates into a single
+JSON result unless `--output text` is passed. `mmx speech recognize` is an alias for
+`mmx speech transcribe`.
 
 ### `mmx vision`
 

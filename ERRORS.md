@@ -119,6 +119,24 @@ This document lists all error scenarios and the messages users will see.
 | `--out` path no write permission | `Permission denied: cannot write to "${outPath}".` |
 | Disk full | `Disk full — cannot write audio file.` |
 
+### `mmx speech transcribe`
+
+| Scenario | Error Message |
+|---|---|
+| No `--file` (and no positional path) in non-interactive mode | `Missing required argument: --file` |
+| Audio file not found | `File not found: ${fullPath}` |
+| Invalid `--response-format` | `Invalid response format "${fmt}". Supported: json, verbose_json, srt, vtt` |
+| Audio file above 50 MB | `Audio file is ${size} MB; speech-to-text allows at most 50 MB: ${fullPath}` |
+| Server rejects the upload as too large (HTTP 413) | `Audio file exceeds the speech-to-text size limit (HTTP 413). ${message}` |
+| Audio flagged by the sensitivity filter (HTTP 422) | `Input audio flagged by sensitivity filter (${message})` |
+| `--stream` with a response format other than `json` | `response_format "${fmt}" cannot be combined with stream=true; streaming returns incremental json only.` |
+| `--stream` together with `--out` | `--stream and --out cannot be combined.` |
+| `--out` unwritable (permissions, missing directory) | `File system error: ${message}` |
+| Disk full | `Disk full — cannot write transcript file.` |
+
+Audio longer than 500 seconds and unsupported/corrupt audio are rejected by the API; the
+server message is surfaced verbatim (e.g. `API error: invalid params, ... (HTTP 400)`).
+
 ### `mmx speech voices`
 
 All errors fall under [Network Errors](#networkerrors).

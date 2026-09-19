@@ -120,6 +120,24 @@ for await (const chunk of stream) {
 // List voices
 const voices = await sdk.speech.voices();
 const englishVoices = await sdk.speech.voices('en');
+
+// Speech-to-text
+const transcript = await sdk.speech.transcribe({
+  file: './meeting.mp3',
+  language: 'zh',
+});
+console.log(transcript.text, transcript.duration);
+
+// Speech-to-text, streamed
+const deltas = await sdk.speech.transcribe({ file: './meeting.mp3', stream: true });
+for await (const event of deltas) {
+  process.stdout.write(event.delta); // concatenate delta values in `index` order
+}
+// The generator ends at the API's final event (finish: true) and releases the
+// connection, so breaking out of the loop early is safe. Unlike the CLI, which
+// warns and continues, the SDK throws SDKError on a malformed stream chunk.
+// Non-SSE responses and streams ending without finish: true also throw SDKError
+// during iteration; text received before an error may be incomplete.
 ```
 
 ### Vision
