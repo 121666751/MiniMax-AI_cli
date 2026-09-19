@@ -8,7 +8,9 @@ development placeholder version `0.0.0-dev`; do not change it for a release.
 - The commit to release is on `main`.
 - CI has passed for that commit.
 - The release version is a new SemVer version, for example `1.0.23`.
-- The `NPM_TOKEN` repository secret remains configured for npm publishing.
+- npm trusted publishing is configured for this repository and its
+  `.github/workflows/release.yml` workflow. Publishing uses GitHub Actions OIDC;
+  the workflow does not use an `NPM_TOKEN` secret.
 
 ## Publish a release
 
@@ -24,7 +26,9 @@ git push origin v1.0.23
 The `Release` GitHub Actions workflow validates the tag, derives `1.0.23` as
 the release version, builds the CLI with that version, and creates a temporary
 npm tarball whose `package.json` has the matching version. It then creates a
-GitHub Release and publishes that tarball to npm.
+GitHub Release with automatically generated notes and publishes that tarball to npm.
+Review the release notes against all changes since the previous release and add
+a user-facing summary of new features and fixes.
 
 ## Verify
 
